@@ -25,7 +25,7 @@ func init() {
 
 	if _, err := os.Stat(ConfigFilePath); err == nil {
 		if err := viper.ReadInConfig(); err != nil {
-			fmt.Println("Warning: Could not read config file:", err)
+			fmt.Printf("⚠️  Warning: Could not read config file: %v\n", err)
 		}
 	}
 }
