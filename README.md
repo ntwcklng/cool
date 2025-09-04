@@ -15,6 +15,18 @@ Built with [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.co
 
 ## Installation
 
+### Using the install script (recommended)
+
+This script will clone the repo, build the CLI, and move it to `/usr/local/bin`:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/ntwcklng/cool/main/script/install.sh | bash
+```
+
+---
+
+### Manual installation
+
 1. Install Go (macOS / Linux):
 
 ```bash
