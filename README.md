@@ -1,4 +1,4 @@
-# Go Upload CLI
+# Cool CLI
 
 A small Go CLI tool to manage deployments via the Coolify API.  
 Built with [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.com/spf13/viper) for easy configuration.
@@ -17,18 +17,31 @@ Built with [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.co
 
 1. Install Go (macOS / Linux):
 
-````bash
 ```bash
 brew install go
+```
+
+2. Clone the repo and build:
+
+```bash
 git clone https://github.com/ntwcklng/cool.git
 cd cool
-go build -u cool
-mv cool /usr/local/bin/
+go build -o cool
 ```
+
+3. Optionally move the binary to your PATH:
+
+```bash
+sudo mv cool /usr/local/bin/
+```
+
+---
 
 ## Usage
 
+```bash
 cool [command]
+```
 
 ### Commands
 
@@ -36,7 +49,9 @@ cool [command]
 
 Authenticate and save your API credentials.
 
+```bash
 cool auth
+```
 
 - Prompts for:
   - **API URL** (just the base URL, e.g., `example.com`)
@@ -50,7 +65,9 @@ cool auth
 
 Fetch deployments from the API and select one interactively.
 
+```bash
 cool deploy
+```
 
 - Loads credentials from your config file
 - Automatically runs `auth` if no config is found or credentials are missing
@@ -68,19 +85,26 @@ cool deploy
 
 Authenticate:
 
+```bash
 cool auth
+```
 
 Fetch and select a deployment:
 
+```bash
 cool deploy
+```
 
 ---
 
 You can also get help for any command:
 
+```bash
 cool [command] --help
+```
 
 - Example:
 
+```bash
 cool deploy --help
-````
+```
