@@ -93,6 +93,21 @@ cool deploy
 
 ---
 
+#### `update`
+
+Update the Cool CLI to the latest version from GitHub.
+
+```bash
+cool update
+```
+
+- Checks GitHub for the latest release
+- Downloads and builds the new version
+- Replaces the current binary automatically
+- Shows progress with clear visual feedback
+
+---
+
 ### Examples
 
 Authenticate:
@@ -105,6 +120,12 @@ Fetch and select a deployment:
 
 ```bash
 cool deploy
+```
+
+Update to the latest version:
+
+```bash
+cool update
 ```
 
 ---
