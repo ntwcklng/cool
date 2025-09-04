@@ -55,7 +55,7 @@ cool auth
 
 - Prompts for:
   - **API URL** (just the base URL, e.g., `example.com`)
-  - **Token**
+  - **Token** (needs write and deploy rights: Keys & Tokens -> API Tokens)
 - Saves the values in `~/.cool.yaml`
 - Can be rerun anytime to update credentials
 
