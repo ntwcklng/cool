@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ntwcklng/cool/pkg/types"
+	"github.com/ntwcklng/cool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -13,7 +15,7 @@ func init() {
 }
 
 var (
-	selectedDeployment Deployment
+	selectedDeployment types.Deployment
 	deployCmd          = &cobra.Command{
 		Use:   "deploy",
 		Short: "View and trigger deployments",
@@ -39,25 +41,13 @@ var (
 			} else {
 				fmt.Println("💡 No cool.yaml found in current directory. Listing all deployments...")
 				deployments := ListAllApplications()
-				if len(deployments) == 0 {
-					fmt.Println("❌ No deployments available.")
+				selectedDeployment = utils.Select(deployments, "Select an application to deploy:")
+				if (selectedDeployment == types.Deployment{}) {
+					fmt.Println("❌ No deployment selected. Exiting.")
 					return
 				}
 
-				var choice int
-				fmt.Print("🎯 Select deployment (1-" + fmt.Sprintf("%d", len(deployments)) + "): ")
-				_, err := fmt.Scanln(&choice)
-				if err != nil {
-					fmt.Printf("❌ Invalid input: %v\n", err)
-					return
-				}
-
-				if choice < 1 || choice > len(deployments) {
-					fmt.Printf("❌ Invalid choice. Please select a number between 1 and %d\n", len(deployments))
-					return
-				}
-
-				selectedDeployment = deployments[choice-1]
+				fmt.Printf("✅ Selected deployment: %s (UUID: %s)\n", selectedDeployment.ApplicationName, selectedDeployment.DeploymentUUID)
 			}
 			fmt.Println()
 			fmt.Printf("🚀 Triggering deployment for: %s\n", selectedDeployment.ApplicationName)

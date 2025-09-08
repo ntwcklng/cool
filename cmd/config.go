@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ntwcklng/cool/pkg/types"
 	"github.com/ntwcklng/cool/utils"
 	"github.com/spf13/viper"
 )
@@ -19,13 +20,6 @@ var (
 	ConfigFileName = ".cool.yaml"
 	ConfigFilePath = filepath.Join(home, ConfigFileName)
 )
-
-type Deployment struct {
-	ID              int    `json:"id"`
-	ApplicationName string `json:"name"`
-	DeploymentUUID  string `json:"uuid"`
-	FQDN            string `json:"fqdn"`
-}
 
 func init() {
 	viper.SetConfigFile(ConfigFilePath)
@@ -45,7 +39,7 @@ func init() {
 	}
 }
 
-func ListAllApplications() []Deployment {
+func ListAllApplications() []types.Deployment {
 	// Diese Funktion wird in deploy.go definiert
 
 	fmt.Println("🚀 Fetching deployments...")
@@ -59,7 +53,7 @@ func ListAllApplications() []Deployment {
 		fmt.Println("💡 Running authentication setup...")
 		fmt.Println()
 		authCmd.Run(authCmd, []string{})
-		return []Deployment{}
+		return []types.Deployment{}
 	}
 
 	client := &http.Client{}
@@ -70,45 +64,36 @@ func ListAllApplications() []Deployment {
 	if err != nil {
 		fmt.Printf("❌ Error fetching deployments: %v\n", err)
 		fmt.Println("💡 Check your internet connection and API URL")
-		return []Deployment{}
+		return []types.Deployment{}
 	}
 	defer resp.Body.Close()
 
 	if !utils.HandleHTTPResponse(resp, "fetching deployments") {
-		return []Deployment{}
+		return []types.Deployment{}
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("❌ Error reading response: %v\n", err)
-		return []Deployment{}
+		return []types.Deployment{}
 	}
 
 	if len(body) == 0 {
 		fmt.Println("⚠️  No deployments found or API returned empty response")
-		return []Deployment{}
+		return []types.Deployment{}
 	}
 
-	var deployments []Deployment
+	var deployments []types.Deployment
 	if err := json.Unmarshal(body, &deployments); err != nil {
 		fmt.Printf("❌ Error parsing deployments data: %v\n", err)
-		return []Deployment{}
+		return []types.Deployment{}
 	}
 
 	if len(deployments) == 0 {
 		fmt.Println("📭 No deployments available")
-		return []Deployment{}
+		return []types.Deployment{}
 	}
 
-	fmt.Printf("📋 Found %d deployment(s):\n", len(deployments))
-	fmt.Println()
-	for i, d := range deployments {
-		fmt.Printf("  %d) %s\n", i+1, d.ApplicationName)
-		fmt.Printf("     🌐 %s\n", d.FQDN)
-		if i < len(deployments)-1 {
-			fmt.Println()
-		}
-	}
 	return deployments
 }
 

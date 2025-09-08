@@ -36,7 +36,7 @@ This will download, build, and replace the current binary.`,
 			return
 		}
 
-		currentVersion := "v1.0.3"
+		currentVersion := "v1.0.4"
 		if release.TagName == currentVersion {
 			fmt.Printf("✅ You are already on the latest version: %s\n", currentVersion)
 			return

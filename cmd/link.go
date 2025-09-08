@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ntwcklng/cool/pkg/types"
+	"github.com/ntwcklng/cool/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -36,25 +38,13 @@ var linkCmd = &cobra.Command{
 			fmt.Printf("🕵🏻‍♂️ A cool.yaml found with DeploymentUUID: %s\n", v.GetString("DeploymentUUID"))
 		} else {
 			deployments := ListAllApplications()
-			if len(deployments) == 0 {
-				fmt.Println("❌ No deployments available to link to.")
+			selectedDeployment = utils.Select(deployments, "Select deployment to link to:")
+			if (selectedDeployment == types.Deployment{}) {
+				fmt.Println("❌ No deployment selected. Exiting.")
 				return
 			}
 
-			var choice int
-			fmt.Print("🎯 Select deployment (1-" + fmt.Sprintf("%d", len(deployments)) + "): ")
-			_, err := fmt.Scanln(&choice)
-			if err != nil {
-				fmt.Printf("❌ Invalid input: %v\n", err)
-				return
-			}
-
-			if choice < 1 || choice > len(deployments) {
-				fmt.Printf("❌ Invalid choice. Please select a number between 1 and %d\n", len(deployments))
-				return
-			}
-
-			selectedDeployment := deployments[choice-1]
+			fmt.Printf("✅ Selected deployment: %s (UUID: %s)\n", selectedDeployment.ApplicationName, selectedDeployment.DeploymentUUID)
 			fmt.Println()
 			v.Set("DeploymentUUID", selectedDeployment.DeploymentUUID)
 			v.Set("ApplicationName", selectedDeployment.ApplicationName)
