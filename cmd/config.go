@@ -59,7 +59,7 @@ func ListAllApplications() []Deployment {
 		fmt.Println("💡 Running authentication setup...")
 		fmt.Println()
 		authCmd.Run(authCmd, []string{})
-		// return
+		return []Deployment{}
 	}
 
 	client := &http.Client{}
@@ -70,34 +70,34 @@ func ListAllApplications() []Deployment {
 	if err != nil {
 		fmt.Printf("❌ Error fetching deployments: %v\n", err)
 		fmt.Println("💡 Check your internet connection and API URL")
-		// return
+		return []Deployment{}
 	}
 	defer resp.Body.Close()
 
 	if !utils.HandleHTTPResponse(resp, "fetching deployments") {
-		// return
+		return []Deployment{}
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("❌ Error reading response: %v\n", err)
-		// return
+		return []Deployment{}
 	}
 
 	if len(body) == 0 {
 		fmt.Println("⚠️  No deployments found or API returned empty response")
-		// return
+		return []Deployment{}
 	}
 
 	var deployments []Deployment
 	if err := json.Unmarshal(body, &deployments); err != nil {
 		fmt.Printf("❌ Error parsing deployments data: %v\n", err)
-		// return
+		return []Deployment{}
 	}
 
 	if len(deployments) == 0 {
 		fmt.Println("📭 No deployments available")
-		// return err
+		return []Deployment{}
 	}
 
 	fmt.Printf("📋 Found %d deployment(s):\n", len(deployments))

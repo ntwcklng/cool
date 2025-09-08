@@ -15,6 +15,7 @@ directly from your terminal.
 
 Available commands:
   auth   - Set up authentication credentials
+  link   - Link local project to a deployment
   deploy - View and trigger deployments
   update - Update to the latest version`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -25,6 +26,7 @@ Available commands:
 		fmt.Println()
 		fmt.Println("Quick start:")
 		fmt.Println("  cool auth   - Set up your API credentials")
+		fmt.Println("  cool link   - Link current directory to a deployment")
 		fmt.Println("  cool deploy - View and manage deployments")
 		fmt.Println("  cool update - Update to the latest version")
 	},

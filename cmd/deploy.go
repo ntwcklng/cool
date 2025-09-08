@@ -30,7 +30,7 @@ var (
 			}
 			v.AddConfigPath(pwd)
 			if err := v.ReadInConfig(); err == nil {
-				if v.GetString("deploymentUUID") != "" {
+				if v.GetString("DeploymentUUID") != "" {
 					fmt.Printf("🕵🏻‍♂️ A cool.yaml found with DeploymentUUID: %s\n", v.GetString("DeploymentUUID"))
 					selectedDeployment.DeploymentUUID = v.GetString("DeploymentUUID")
 					selectedDeployment.ApplicationName = v.GetString("ApplicationName")
@@ -39,6 +39,11 @@ var (
 			} else {
 				fmt.Println("💡 No cool.yaml found in current directory. Listing all deployments...")
 				deployments := ListAllApplications()
+				if len(deployments) == 0 {
+					fmt.Println("❌ No deployments available.")
+					return
+				}
+
 				var choice int
 				fmt.Print("🎯 Select deployment (1-" + fmt.Sprintf("%d", len(deployments)) + "): ")
 				_, err := fmt.Scanln(&choice)

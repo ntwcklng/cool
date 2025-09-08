@@ -28,14 +28,19 @@ var linkCmd = &cobra.Command{
 		v.SetConfigType("yaml")
 		v.AddConfigPath(pwd)
 		if err := v.ReadInConfig(); err == nil {
-			if v.GetString("deploymentUUID") == "" {
-				fmt.Println("❌ cool.yaml found but no deploymentUUID set.")
+			if v.GetString("DeploymentUUID") == "" {
+				fmt.Println("❌ cool.yaml found but no DeploymentUUID set.")
 				fmt.Println("💡 Please run 'cool link' in a directory without an existing cool.yaml to create a new one.")
 				return
 			}
-			fmt.Printf("🕵🏻‍♂️ A cool.yaml found with DeploymentUUID: %s\n", v.GetString("deploymentUUID"))
+			fmt.Printf("🕵🏻‍♂️ A cool.yaml found with DeploymentUUID: %s\n", v.GetString("DeploymentUUID"))
 		} else {
 			deployments := ListAllApplications()
+			if len(deployments) == 0 {
+				fmt.Println("❌ No deployments available to link to.")
+				return
+			}
+
 			var choice int
 			fmt.Print("🎯 Select deployment (1-" + fmt.Sprintf("%d", len(deployments)) + "): ")
 			_, err := fmt.Scanln(&choice)
@@ -54,8 +59,15 @@ var linkCmd = &cobra.Command{
 			v.Set("DeploymentUUID", selectedDeployment.DeploymentUUID)
 			v.Set("ApplicationName", selectedDeployment.ApplicationName)
 			v.Set("FQDN", selectedDeployment.FQDN)
-			v.WriteConfigAs(pwd + "/cool.yaml")
-			fmt.Printf("Created a new cool.yaml\n")
+
+			configPath := pwd + "/cool.yaml"
+			if err := v.WriteConfigAs(configPath); err != nil {
+				fmt.Printf("❌ Error creating cool.yaml: %v\n", err)
+				return
+			}
+
+			fmt.Printf("✅ Created cool.yaml with deployment: %s\n", selectedDeployment.ApplicationName)
+			fmt.Printf("🌐 FQDN: %s\n", selectedDeployment.FQDN)
 			fmt.Println("✅ Successfully linked current directory to deployment.")
 		}
 	},

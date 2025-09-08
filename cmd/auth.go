@@ -53,10 +53,10 @@ func initConfig() {
 	fmt.Scanln(&apiURL)
 	fmt.Print("🔑 Enter your API token: ")
 	fmt.Scanln(&token)
-	
+
 	fmt.Println()
 	fmt.Println("💾 Saving configuration...")
-	
+
 	viper.Set("apiURL", apiURL)
 	viper.Set("token", token)
 	if err := viper.WriteConfigAs(ConfigFilePath); err != nil {

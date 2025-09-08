@@ -9,6 +9,7 @@ Built with [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.co
 
 - Authentication via API URL & Token (`auth` command)
 - Stores configuration in `~/.cool.yaml`
+- Link local projects to deployments (`link` command)
 - Fetch and select deployments (`deploy` command)
 
 ---
@@ -73,9 +74,27 @@ cool auth
 
 ---
 
+#### `link`
+
+Link your local project directory to a specific deployment for easier management.
+
+```bash
+cool link
+```
+
+- If a `cool.yaml` file exists in the current directory, shows the linked deployment
+- If no `cool.yaml` file exists, displays available deployments for selection
+- Creates a local `cool.yaml` file with deployment details:
+  - DeploymentUUID
+  - ApplicationName  
+  - FQDN
+- Allows project-specific deployment management without repeated selection
+
+---
+
 #### `deploy`
 
-Fetch deployments from the API and select one interactively.
+Fetch deployments from the API and trigger a deployment.
 
 ```bash
 cool deploy
@@ -83,13 +102,10 @@ cool deploy
 
 - Loads credentials from your config file
 - Automatically runs `auth` if no config is found or credentials are missing
-- Displays a numbered list of available deployments
-- Prompts the user to select one
-- Outputs details of the selected deployment:
-  - Application name
-  - Deployment UUID
-  - Status
-  - Deployment URL
+- If a `cool.yaml` file exists in the current directory, uses that deployment
+- Otherwise, displays a numbered list of available deployments for selection
+- Triggers deployment for the selected application
+- Shows deployment URL and status
 
 ---
 
@@ -116,7 +132,13 @@ Authenticate:
 cool auth
 ```
 
-Fetch and select a deployment:
+Link current directory to a deployment:
+
+```bash
+cool link
+```
+
+Fetch and trigger a deployment:
 
 ```bash
 cool deploy
