@@ -55,7 +55,7 @@ This will download, build, and replace the current binary.`,
 
 		fmt.Println("🔨 Building new binary...")
 		binaryPath := filepath.Join(tmpDir, "cool")
-		buildCmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", binaryPath, "./cmd")
+		buildCmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", binaryPath)
 		buildCmd.Dir = tmpDir
 		if err := buildCmd.Run(); err != nil {
 			fmt.Printf("❌ Error building: %v\n", err)
@@ -69,9 +69,16 @@ This will download, build, and replace the current binary.`,
 		}
 
 		fmt.Printf("📦 Replacing current binary at %s\n", execPath)
+		
+		// Check if we need sudo for the replacement
 		if err := os.Rename(binaryPath, execPath); err != nil {
-			fmt.Printf("❌ Error replacing binary: %v\n", err)
-			return
+			// If rename fails, try with sudo
+			fmt.Println("🔐 Attempting to update with elevated permissions...")
+			sudoCmd := exec.Command("sudo", "mv", binaryPath, execPath)
+			if err := sudoCmd.Run(); err != nil {
+				fmt.Printf("❌ Error replacing binary: %v\n", err)
+				return
+			}
 		}
 
 		fmt.Println("🎉 Update completed successfully!")
