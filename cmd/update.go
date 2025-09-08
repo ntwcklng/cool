@@ -36,7 +36,7 @@ This will download, build, and replace the current binary.`,
 			return
 		}
 
-		currentVersion := "v1.0.2"
+		currentVersion := "v1.0.3"
 		if release.TagName == currentVersion {
 			fmt.Printf("✅ You are already on the latest version: %s\n", currentVersion)
 			return
@@ -69,7 +69,7 @@ This will download, build, and replace the current binary.`,
 		}
 
 		fmt.Printf("📦 Replacing current binary at %s\n", execPath)
-		
+
 		// Check if we need sudo for the replacement
 		if err := os.Rename(binaryPath, execPath); err != nil {
 			// If rename fails, try with sudo
