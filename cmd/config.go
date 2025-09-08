@@ -1,12 +1,16 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/ntwcklng/cool/utils"
 	"github.com/spf13/viper"
 )
 
@@ -16,17 +20,126 @@ var (
 	ConfigFilePath = filepath.Join(home, ConfigFileName)
 )
 
+type Deployment struct {
+	ID              int    `json:"id"`
+	ApplicationName string `json:"name"`
+	DeploymentUUID  string `json:"uuid"`
+	FQDN            string `json:"fqdn"`
+}
+
 func init() {
 	viper.SetConfigFile(ConfigFilePath)
 	viper.SetConfigType("yaml")
 
-	viper.SetDefault("apiurl", "")
-	viper.SetDefault("token", "")
+	if _, err := os.Stat(ConfigFilePath); os.IsNotExist(err) {
+		fmt.Println("⚙️  Configuration not found. Setting up authentication first...")
+		fmt.Println()
+		authCmd.Run(authCmd, []string{})
+		return
+	}
+	viper.SetConfigFile(ConfigFilePath)
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Printf("❌ Error reading config file: %v\n", err)
+		fmt.Println("💡 Try running 'cool auth' to reconfigure")
+		return
+	}
+}
 
-	if _, err := os.Stat(ConfigFilePath); err == nil {
-		if err := viper.ReadInConfig(); err != nil {
-			fmt.Printf("⚠️  Warning: Could not read config file: %v\n", err)
+func ListAllApplications() []Deployment {
+	// Diese Funktion wird in deploy.go definiert
+
+	fmt.Println("🚀 Fetching deployments...")
+	fmt.Println()
+
+	apiURL := GetAPIURL()
+	token := GetToken()
+
+	if apiURL == "" || token == "" {
+		fmt.Println("❌ Missing API URL or token in configuration")
+		fmt.Println("💡 Running authentication setup...")
+		fmt.Println()
+		authCmd.Run(authCmd, []string{})
+		// return
+	}
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", GetAllDeploymentsURL(), nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("❌ Error fetching deployments: %v\n", err)
+		fmt.Println("💡 Check your internet connection and API URL")
+		// return
+	}
+	defer resp.Body.Close()
+
+	if !utils.HandleHTTPResponse(resp, "fetching deployments") {
+		// return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("❌ Error reading response: %v\n", err)
+		// return
+	}
+
+	if len(body) == 0 {
+		fmt.Println("⚠️  No deployments found or API returned empty response")
+		// return
+	}
+
+	var deployments []Deployment
+	if err := json.Unmarshal(body, &deployments); err != nil {
+		fmt.Printf("❌ Error parsing deployments data: %v\n", err)
+		// return
+	}
+
+	if len(deployments) == 0 {
+		fmt.Println("📭 No deployments available")
+		// return err
+	}
+
+	fmt.Printf("📋 Found %d deployment(s):\n", len(deployments))
+	fmt.Println()
+	for i, d := range deployments {
+		fmt.Printf("  %d) %s\n", i+1, d.ApplicationName)
+		fmt.Printf("     🌐 %s\n", d.FQDN)
+		if i < len(deployments)-1 {
+			fmt.Println()
 		}
+	}
+	return deployments
+}
+
+func Deploy(URL string) {
+	token := GetToken()
+	if token == "" {
+		fmt.Println("❌ No valid token found. Please authenticate first.")
+		fmt.Println("💡 Try running 'cool auth' to reconfigure")
+		return
+	}
+	fmt.Println("⏳ Sending deployment request...")
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", URL, nil)
+	if err != nil {
+		fmt.Printf("❌ Error creating request: %v\n", err)
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("❌ Deployment request failed: %v\n", err)
+		fmt.Println("💡 Check your internet connection and try again")
+		return
+	}
+	defer resp.Body.Close()
+
+	if utils.HandleHTTPResponse(resp, "deployment") {
+		fmt.Println("✅ Deployment triggered successfully!")
+		fmt.Println("💡 Check your Coolify dashboard for deployment progress")
 	}
 }
 

@@ -36,7 +36,7 @@ This will download, build, and replace the current binary.`,
 			return
 		}
 
-		currentVersion := "v1.0.0"
+		currentVersion := "v1.0.1"
 		if release.TagName == currentVersion {
 			fmt.Printf("✅ You are already on the latest version: %s\n", currentVersion)
 			return
@@ -82,4 +82,3 @@ This will download, build, and replace the current binary.`,
 func init() {
 	rootCmd.AddCommand(updateCmd)
 }
-
