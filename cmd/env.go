@@ -47,6 +47,11 @@ type EnvCreateRequest struct {
 	IsShownOnce  bool   `json:"is_shown_once"`
 }
 
+// EnvBulkUpdateRequest represents the request body for bulk updating environment variables
+type EnvBulkUpdateRequest struct {
+	Data []EnvCreateRequest `json:"data"`
+}
+
 var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Manage environment variables for deployments",
@@ -166,25 +171,14 @@ var envPushCmd = &cobra.Command{
 			return
 		}
 
-		// Push each environment variable to API
-		successCount := 0
-		failCount := 0
-		for key, value := range envVars {
-			err := createEnvironmentVariable(deploymentUUID, key, value)
-			if err != nil {
-				fmt.Printf("⚠️  Failed to push %s: %v\n", key, err)
-				failCount++
-			} else {
-				successCount++
-			}
+		// Push environment variables using bulk update API
+		err = bulkUpdateEnvironmentVariables(deploymentUUID, envVars)
+		if err != nil {
+			fmt.Printf("❌ Failed to push environment variables: %v\n", err)
+			return
 		}
 
-		if successCount > 0 {
-			fmt.Printf("✅ Successfully pushed %d environment variables\n", successCount)
-		}
-		if failCount > 0 {
-			fmt.Printf("⚠️  Failed to push %d environment variables\n", failCount)
-		}
+		fmt.Printf("✅ Successfully pushed %d environment variables\n", len(envVars))
 	},
 }
 
@@ -254,20 +248,28 @@ func fetchEnvironmentVariables(uuid string) ([]EnvironmentVariable, error) {
 	return envVars, nil
 }
 
-// createEnvironmentVariable creates or updates an environment variable via the Coolify API
-func createEnvironmentVariable(uuid, key, value string) error {
+// bulkUpdateEnvironmentVariables updates multiple environment variables via the Coolify API
+func bulkUpdateEnvironmentVariables(uuid string, envVars map[string]string) error {
 	apiURL := GetAPIURL()
 	token := GetToken()
 
-	url := fmt.Sprintf("%s/api/v1/applications/%s/envs", apiURL, uuid)
+	url := fmt.Sprintf("%s/api/v1/applications/%s/envs/bulk", apiURL, uuid)
 
-	reqBody := EnvCreateRequest{
-		Key:         key,
-		Value:       value,
-		IsPreview:   false,
-		IsLiteral:   false,
-		IsMultiline: strings.Contains(value, "\n"),
-		IsShownOnce: false,
+	// Convert map to array of EnvCreateRequest
+	var envData []EnvCreateRequest
+	for key, value := range envVars {
+		envData = append(envData, EnvCreateRequest{
+			Key:         key,
+			Value:       value,
+			IsPreview:   false,
+			IsLiteral:   false,
+			IsMultiline: strings.Contains(value, "\n"),
+			IsShownOnce: false,
+		})
+	}
+
+	reqBody := EnvBulkUpdateRequest{
+		Data: envData,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
@@ -276,7 +278,7 @@ func createEnvironmentVariable(uuid, key, value string) error {
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", url, strings.NewReader(string(jsonData)))
+	req, err := http.NewRequest("PATCH", url, strings.NewReader(string(jsonData)))
 	if err != nil {
 		return err
 	}
@@ -290,7 +292,7 @@ func createEnvironmentVariable(uuid, key, value string) error {
 	}
 	defer resp.Body.Close()
 
-	if !utils.HandleHTTPResponse(resp, fmt.Sprintf("create environment variable %s", key)) {
+	if !utils.HandleHTTPResponse(resp, "bulk update environment variables") {
 		return fmt.Errorf("API request failed with status: %d", resp.StatusCode)
 	}
 
