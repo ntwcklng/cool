@@ -6,10 +6,10 @@ import (
 )
 
 // HandleHTTPResponse provides consistent HTTP status code handling across the CLI
-// Returns true if the request was successful (200), false otherwise
+// Returns true if the request was successful (200 or 201), false otherwise
 func HandleHTTPResponse(resp *http.Response, context string) bool {
 	switch resp.StatusCode {
-	case http.StatusOK:
+	case http.StatusOK, http.StatusCreated:
 		return true
 	case http.StatusUnauthorized:
 		fmt.Printf("❌ Authentication failed for %s\n", context)
