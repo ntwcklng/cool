@@ -106,19 +106,23 @@ func Deploy(URL string) {
 	}
 	fmt.Println("⏳ Sending deployment request...")
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", URL, nil)
-	if err != nil {
-		fmt.Printf("❌ Error creating request: %v\n", err)
-		return
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	resp, err := client.Do(req)
+	// Coolify <4.2.0 triggers deployments with GET; 4.2.0+ moved the endpoint to POST.
+	// Try GET first (backward compatible), and if the server rejects the method (405),
+	// retry the same URL with POST so both API versions work.
+	resp, err := sendDeployRequest("GET", URL, token)
 	if err != nil {
 		fmt.Printf("❌ Deployment request failed: %v\n", err)
 		fmt.Println("💡 Check your internet connection and try again")
 		return
+	}
+	if resp.StatusCode == http.StatusMethodNotAllowed {
+		resp.Body.Close()
+		resp, err = sendDeployRequest("POST", URL, token)
+		if err != nil {
+			fmt.Printf("❌ Deployment request failed: %v\n", err)
+			fmt.Println("💡 Check your internet connection and try again")
+			return
+		}
 	}
 	defer resp.Body.Close()
 
@@ -126,6 +130,16 @@ func Deploy(URL string) {
 		fmt.Println("✅ Deployment triggered successfully!")
 		fmt.Println("💡 Check your Coolify dashboard for deployment progress")
 	}
+}
+
+// sendDeployRequest issues the deploy trigger with the given HTTP method and bearer token.
+func sendDeployRequest(method, URL, token string) (*http.Response, error) {
+	req, err := http.NewRequest(method, URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	return (&http.Client{}).Do(req)
 }
 
 func GetAPIURL() string {
